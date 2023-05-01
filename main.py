@@ -9,10 +9,11 @@ from utils.globalq import tasks_queue
 from routers.job import router as job_router
 from routers.test import router as test_router
 from utils.logger import log
+from spiders.xhs.spider import craw_xhs
 
 NUM_WORKERS = 3     # 爬虫工作协程
 
-with open("config.txt", "r") as f:
+with open("./configs/config.txt", "r") as f:
     config = json.loads(f.read())
 
 app = FastAPI()
@@ -38,7 +39,13 @@ async def spider_task():
             job = tasks_queue.get_nowait()
             log(f"JOBS:    queue_size {tasks_queue.qsize()}| job {job}| WORKER {task_name}  finished!")
             # TODO: 根据search_platform调用爬虫
-            # TODO: 爬虫结果入库
+            if job['search_platform'] == 'xhs':
+                craw_xhs(
+                    job_id=job['job_id'],
+                    search_param=job['search_param'],
+                    search_size=job['search_size'],
+                    cookie=job['cookie']
+                )
             await asyncio.sleep(random.randint(0, 5))
         except queue.Empty:
             await asyncio.sleep(1)
