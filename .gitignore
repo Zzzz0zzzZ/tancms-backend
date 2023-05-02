@@ -2,3 +2,4 @@ config.txt
 .idea
 db_manager_config.txt
 ./configs/
+configs/cookie_template.py
