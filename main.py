@@ -10,7 +10,7 @@ from routers.job import router as job_router
 from routers.test import router as test_router
 from utils.logger import log
 from spiders.xhs.spider import craw_xhs
-
+from spiders.weibo.spider import craw_weibo
 NUM_WORKERS = 3     # 爬虫工作协程
 
 with open("./configs/config.txt", "r") as f:
@@ -46,6 +46,13 @@ async def spider_task():
                     search_size=job['search_size'],
                     cookie=job['cookie']
                 )
+            elif job['search_platform'] == 'weibo':
+                craw_weibo(
+                    job_id=job['job_id'],
+                    search_param=job['search_param'],
+                    search_size=job['search_size'],
+                    cookie=job['cookie']
+                )
             await asyncio.sleep(random.randint(0, 5))
         except queue.Empty:
             await asyncio.sleep(1)
@@ -61,4 +68,4 @@ async def startup_event():
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, port=1234)
+    uvicorn.run(app, port=1111)
