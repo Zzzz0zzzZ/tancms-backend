@@ -26,7 +26,12 @@ router = APIRouter()
 @router.post("/", description="创建爬虫任务")
 async def create_job(job_request: JobCreateRequest):
     job_id = str(uuid4())
-    job = Job(job_id=job_id, search_param=job_request.search_param, search_platform=job_request.search_platform)
+    job = Job(
+        job_id=job_id,
+        search_param=job_request.search_param,
+        search_platform=job_request.search_platform,
+        search_size=len(job_request.search_platform.split("|"))
+    )
 
     for job_per_platform in job_request.search_platform.split("|"):
         job_details = {
@@ -40,7 +45,7 @@ async def create_job(job_request: JobCreateRequest):
 
     debug(f"/jobs/  请求参数:   {job_request}")
     await job.save()
-    return {"id": job.id, "job_id": job.job_id, "search_param": job.search_param,
+    return {"job_id": job.job_id, "search_param": job.search_param,
             "search_platform": job.search_platform,
             "create_time": job.create_time, "status": job.status}
 
@@ -50,7 +55,6 @@ async def create_job(job_request: JobCreateRequest):
 async def get_jobs():
     jobs = await Job.all()
     return [{
-        "id": job.id,
         "job_id": job.job_id,
         "search_param": job.search_param,
         "search_platform": job.search_platform,
