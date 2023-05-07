@@ -11,6 +11,7 @@ from routers.test import router as test_router
 from utils.logger import log
 from spiders.xhs.spider import craw_xhs
 from spiders.weibo.spider import craw_weibo
+from spiders.douyin.spider import craw_douyin
 NUM_WORKERS = 3     # 爬虫工作协程
 
 with open("./configs/config.txt", "r") as f:
@@ -48,6 +49,13 @@ async def spider_task():
                 )
             elif job['search_platform'] == 'weibo':
                 craw_weibo(
+                    job_id=job['job_id'],
+                    search_param=job['search_param'],
+                    search_size=job['search_size'],
+                    cookie=job['cookie']
+                )
+            elif job['search_platform'] == 'douyin':
+                craw_douyin(
                     job_id=job['job_id'],
                     search_param=job['search_param'],
                     search_size=job['search_size'],

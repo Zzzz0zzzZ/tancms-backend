@@ -26,7 +26,6 @@ class Weibo:
         self.job_id = job_id
         self.search_param = search_param
         self.url = None
-        self.encoding_string = search_param
         self.search_size = search_size
         self.cookie = cookie
         self.current_size = 0
@@ -80,16 +79,20 @@ class Weibo:
 
     def get_cookie(self):
         """
-        获取cookie
+        获取用户登录后的cookie并存储到文件中
 
-        :return: 无返回值，将cookie保存到文件中
+        :return: 无返回值
         """
         self.browser.get(self.url)
-        sleep(200)  # 在这个时间里手动登录
-        with open('Weibo_cookies.txt', 'w') as f:
-            # 将cookies保存为json格式
+
+        # 在这个时间里手动登录，并等待页面加载cookie信息
+        print("请手动登录并等待20秒...")
+        sleep(20)
+
+        with open('DouYin_cookies.txt', 'w') as f:
+            # 将cookies保存为json格式并写入文件
             f.write(json.dumps(self.browser.get_cookies()))
-        self.browser.quit()
+        self.browser.close()
 
     def set_cookie(self):
         """
@@ -153,6 +156,7 @@ class Weibo:
         self.set_cookie()
         self.run()
         self.db_manager.finish(job_id=self.job_id)
+        self.browser.close()
 
     def run(self):
         """
