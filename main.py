@@ -59,11 +59,11 @@ async def spider_task():
 
             # TODO: 根据search_platform调用爬虫
             if job['search_platform'] == 'xhs':
-                os.system(f"nohup python3 ./scripts/xhs_.py '{job['job_id']}' '{job['search_param']}' '{job['search_size']}' '{job['cookie']}' > /dev/null 2>&1 &")
+                os.system(f"nohup python3 ./scripts/xhs_.py '{job['job_id']}' '{job['search_param']}' '{job['search_size']}' '{job['cookie']}' >> ./logs/tancms_sys_log.out 2>&1 &")
             elif job['search_platform'] == 'weibo':
-                os.system(f"nohup python3 ./scripts/weibo.py '{job['job_id']}' '{job['search_param']}' '{job['search_size']}' '{job['cookie']}' > /dev/null 2>&1 &")
+                os.system(f"nohup python3 ./scripts/weibo.py '{job['job_id']}' '{job['search_param']}' '{job['search_size']}' '{job['cookie']}' >> ./logs/tancms_sys_log.out 2>&1 &")
             elif job['search_platform'] == 'douyin':
-                os.system(f"nohup python3 ./scripts/douyin.py '{job['job_id']}' '{job['search_param']}' '{job['search_size']}' '{job['cookie']}' > /dev/null 2>&1 &")
+                os.system(f"nohup python3 ./scripts/douyin.py '{job['job_id']}' '{job['search_param']}' '{job['search_size']}' '{job['cookie']}' >> ./logs/tancms_sys_log.out 2>&1 &")
             log(f"JOBS:    queue_size {tasks_queue.qsize()}| job {job}| WORKER {task_name}  already submitted!")
 
         except queue.Empty:

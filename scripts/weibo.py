@@ -10,6 +10,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import pandas as pd
 from db_manager import DBManager
+from logger import log, debug
 
 wb_cookies_list = [{'domain': 's.weibo.com', 'httpOnly': False, 'name': 'WBStorage', 'path': '/', 'sameSite': 'Lax', 'secure': False, 'value': '4d96c54e|undefined'}, {'domain': '.weibo.com', 'httpOnly': False, 'name': 'PC_TOKEN', 'path': '/', 'sameSite': 'Lax', 'secure': True, 'value': 'a3bc12a556'}, {'domain': '.weibo.com', 'httpOnly': False, 'name': 'ALF', 'path': '/', 'sameSite': 'Lax', 'secure': True, 'value': '1714571952'}, {'domain': '.weibo.com', 'httpOnly': False, 'name': 'SSOLoginState', 'path': '/', 'sameSite': 'Lax', 'secure': True, 'value': '1683035953'}, {'domain': '.weibo.com', 'httpOnly': False, 'name': 'Apache', 'path': '/', 'sameSite': 'Lax', 'secure': False, 'value': '9782061202148.695.1683035940951'}, {'domain': '.weibo.com', 'httpOnly': True, 'name': 'SUB', 'path': '/', 'sameSite': 'Lax', 'secure': True, 'value': '_2A25JVWdgDeRhGeVN6VMY9ifPwziIHXVqI9-orDV8PUNbmtANLRP8kW9NTIIm_yLrt55EUYJbP8bSl20l52lEDfK4'}, {'domain': '.weibo.com', 'httpOnly': False, 'name': 'SUBP', 'path': '/', 'sameSite': 'Lax', 'secure': True, 'value': '0033WrSXqPxfM725Ws9jqgMF55529P9D9WW17wUuBXeByG5rfMSff4u55JpX5KzhUgL.Foe0eo24So.01hB2dJLoI0YLxK-L1KeL1hnLxK-L1KeL1hnLxK-L1K-L122LxK-L1KeL1hnLxK-L1K-L122LxK-L1K-L122LxK-L1KeL1hnt'}, {'domain': '.weibo.com', 'httpOnly': False, 'name': 'ULV', 'path': '/', 'sameSite': 'Lax', 'secure': False, 'value': '1683035941071:1:1:1:9782061202148.695.1683035940951:'}, {'domain': '.weibo.com', 'httpOnly': False, 'name': 'SINAGLOBAL', 'path': '/', 'sameSite': 'Lax', 'secure': False, 'value': '9782061202148.695.1683035940951'}, {'domain': '.weibo.com', 'httpOnly': False, 'name': '_s_tentry', 'path': '/', 'sameSite': 'Lax', 'secure': False, 'value': 'passport.weibo.com'}]
 
@@ -219,13 +220,16 @@ def craw_weibo(job_id: str, search_param: str, search_size: int, cookie: str):
     :param cookie: 存储cookie的文件路径
     :return: 无返回值
     """
+    log(f"开始爬取微博   job_id: {job_id}    search_param: {search_param}    search_size: {search_size}")
     try:
         w = Weibo(job_id, search_param, search_size, cookie)
         # w.get_cookie()
         w.work()
     except Exception as e:
+        debug(f"爬取微博失败   job_id: {job_id}    search_param: {search_param}    search_size: {search_size}")
+        debug(f"失败原因    {e}")
         w.browser.close()
-
+    log(f"成功爬取微博   job_id: {job_id}    search_param: {search_param}    search_size: {search_size}")
 
 if __name__ == '__main__':
     job_id = sys.argv[1]
