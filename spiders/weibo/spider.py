@@ -50,7 +50,6 @@ class Weibo:
 
         self.db_manager = DBManager(db=db)
 
-
     def get_url(self):
         """
         请求网页并等待加载
@@ -128,8 +127,9 @@ class Weibo:
                 VALUES (%s, %s, %s, %s, %s, %s)
             '''
         comments_list = []
-        for i in range(self.upload_size,len(self.user_names)):
-            comments_list.append([self.job_id, 'weibo', self.user_names[i], self.contents[i], self.likes[i], self.forwards[i]])
+        for i in range(self.upload_size, len(self.user_names)):
+            comments_list.append(
+                [self.job_id, 'weibo', self.user_names[i], self.contents[i], self.likes[i], self.forwards[i]])
         self.db_manager.insert(sql=sql, data_list=comments_list)
         self.upload_size += len(comments_list)
 
@@ -203,7 +203,6 @@ class Weibo:
         if self.is_element_exist(self.browser, "//div[@class='m-page']//*[text()='下一页']"):
             self.browser.find_element(By.XPATH, "//div[@class='m-page']//*[text()='下一页']").click()
             self.run()
-
 
         self.browser.quit()
 
