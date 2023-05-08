@@ -1,20 +1,17 @@
 import asyncio
-import queue
-import random
 import json
+import os
+import queue
 import uvicorn
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 from tortoise.contrib.fastapi import register_tortoise
-from utils.globalq import tasks_queue
-from routers.job import router as job_router
 from routers.comment import router as comment_router
+from routers.job import router as job_router
+from utils.globalq import tasks_queue
 from utils.logger import log
-from spiders.xhs.spider import craw_xhs
-from spiders.weibo.spider import craw_weibo
-from spiders.douyin.spider import craw_douyin
 
-NUM_WORKERS = 5     # 爬虫工作协程
+NUM_WORKERS = 3     # 爬虫工作协程
 
 with open("./configs/config.txt", "r") as f:
     config = json.loads(f.read())
@@ -59,30 +56,15 @@ async def spider_task():
     while True:
         try:
             job = tasks_queue.get_nowait()
-            log(f"JOBS:    queue_size {tasks_queue.qsize()}| job {job}| WORKER {task_name}  start!")
+
             # TODO: 根据search_platform调用爬虫
             if job['search_platform'] == 'xhs':
-                craw_xhs(
-                    job_id=job['job_id'],
-                    search_param=job['search_param'],
-                    search_size=job['search_size'],
-                    cookie=job['cookie']
-                )
+                os.system(f"nohup python3 ./scripts/xhs_.py '{job['job_id']}' '{job['search_param']}' '{job['search_size']}' '{job['cookie']}' > /dev/null 2>&1 &")
             elif job['search_platform'] == 'weibo':
-                craw_weibo(
-                    job_id=job['job_id'],
-                    search_param=job['search_param'],
-                    search_size=job['search_size'],
-                    cookie=job['cookie']
-                )
+                os.system(f"nohup python3 ./scripts/weibo.py '{job['job_id']}' '{job['search_param']}' '{job['search_size']}' '{job['cookie']}' > /dev/null 2>&1 &")
             elif job['search_platform'] == 'douyin':
-                craw_douyin(
-                    job_id=job['job_id'],
-                    search_param=job['search_param'],
-                    search_size=job['search_size'],
-                    cookie=job['cookie']
-                )
-            log(f"JOBS:    queue_size {tasks_queue.qsize()}| job {job}| WORKER {task_name}  finish!")
+                os.system(f"nohup python3 ./scripts/douyin.py '{job['job_id']}' '{job['search_param']}' '{job['search_size']}' '{job['cookie']}' > /dev/null 2>&1 &")
+            log(f"JOBS:    queue_size {tasks_queue.qsize()}| job {job}| WORKER {task_name}  already submitted!")
 
         except queue.Empty:
             await asyncio.sleep(1)
