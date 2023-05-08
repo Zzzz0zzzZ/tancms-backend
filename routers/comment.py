@@ -4,13 +4,12 @@
 # @File : test.py
 # @Software: PyCharm
 from fastapi import APIRouter
-from tortoise.query_utils import Prefetch
-
 from models.comment import Comment
 from models.job import Job
 
 router = APIRouter()
 
+# 根据job_id查询数据列表
 @router.get("/grouped/{job_id}", description="根据job_id查询数据列表")
 async def get_job_comments_group_by_platform(job_id: str):
     comments = await Comment.filter(job_id=job_id)
