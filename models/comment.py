@@ -14,7 +14,7 @@ class Comment(Model):
     topic = fields.CharField(max_length=255, null=True)
     user_photo = fields.CharField(max_length=255, null=True)
     user_name = fields.CharField(max_length=255, null=True)
-    comment = fields.CharField(max_length=255)
+    comment = fields.CharField(max_length=1000)
     create_time = fields.CharField(max_length=255, null=True)
     like_count = fields.IntField(null=True)
     retransmission_count = fields.IntField(null=True)
