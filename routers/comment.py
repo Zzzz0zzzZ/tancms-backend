@@ -20,13 +20,16 @@ async def get_job_comments_group_by_platform(job_id: str):
 
     platform_comments_map = {}
 
+    for job in jobs:
+        platform_comments_map["job_detail"] = job.__dict__
+
+    platform_comments_map["job_detail"]["comments"] = {}
+
     for comment in comments:
-        if comment.platform not in platform_comments_map:
-            platform_comments_map[comment.platform] = []
+        if comment.platform not in platform_comments_map["job_detail"]["comments"]:
+            platform_comments_map["job_detail"]["comments"][comment.platform] = []
 
-        platform_comments_map[comment.platform].append(comment.__dict__)
-
-    platform_comments_map["job_detail"] = [job.__dict__ for job in jobs]
+        platform_comments_map["job_detail"]["comments"][comment.platform].append(comment.__dict__)
 
     return platform_comments_map
 
