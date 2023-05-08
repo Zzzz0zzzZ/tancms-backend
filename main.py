@@ -41,7 +41,7 @@ async def spider_task():
     while True:
         try:
             job = tasks_queue.get_nowait()
-            log(f"JOBS:    queue_size {tasks_queue.qsize()}| job {job}| WORKER {task_name}  finished!")
+            log(f"JOBS:    queue_size {tasks_queue.qsize()}| job {job}| WORKER {task_name}  start!")
             # TODO: 根据search_platform调用爬虫
             if job['search_platform'] == 'xhs':
                 craw_xhs(
@@ -64,7 +64,8 @@ async def spider_task():
                     search_size=job['search_size'],
                     cookie=job['cookie']
                 )
-            await asyncio.sleep(random.randint(0, 5))
+            log(f"JOBS:    queue_size {tasks_queue.qsize()}| job {job}| WORKER {task_name}  finish!")
+
         except queue.Empty:
             await asyncio.sleep(1)
             continue
