@@ -8,11 +8,13 @@ from tortoise.contrib.fastapi import register_tortoise
 from utils.globalq import tasks_queue
 from routers.job import router as job_router
 from routers.test import router as test_router
+from routers.comment import router as comment_router
 from utils.logger import log
 from spiders.xhs.spider import craw_xhs
 from spiders.weibo.spider import craw_weibo
 from spiders.douyin.spider import craw_douyin
-NUM_WORKERS = 3     # 爬虫工作协程
+
+NUM_WORKERS = 5     # 爬虫工作协程
 
 with open("./configs/config.txt", "r") as f:
     config = json.loads(f.read())
@@ -21,12 +23,13 @@ app = FastAPI()
 
 app.include_router(job_router, prefix="/jobs")
 app.include_router(test_router, prefix="/test")
+app.include_router(comment_router, prefix="/comments")
 
 # 注册数据库连接
 register_tortoise(
     app,
     db_url=config["db_url"],
-    modules={"models": ["models.job"]},
+    modules={"models": ["models.job", "models.comment"]},
     # generate_schemas=True
 )
 
