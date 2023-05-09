@@ -3,3 +3,5 @@ config.txt
 db_manager_config.txt
 ./configs/
 configs/cookie_template.py
+configs/uvicorn_config.json
+uvicorn_config.json
