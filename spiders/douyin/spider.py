@@ -98,7 +98,8 @@ class DouYin:
             self.browser.add_cookie(cookie)
 
         # 刷新页面，即可使用cookie登录
-        self.browser.refresh()
+        # self.browser.refresh()
+        self.get_url()
 
     def get_result(self):
         """

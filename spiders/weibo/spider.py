@@ -2,6 +2,7 @@ import json
 from time import sleep
 import urllib.parse
 
+import selenium
 from selenium import webdriver
 from selenium.common import exceptions
 from selenium.webdriver.common.by import By
@@ -61,7 +62,6 @@ class Weibo:
         self.browser.get(self.url)
         WebDriverWait(self.browser, 10, 0.5).until(EC.presence_of_element_located((By.XPATH, "//*[@action-type"
                                                                                              "='feed_list_item']")))
-
     def is_element_exist(self, driver, xpath):
         """
         判断元素是否存在
@@ -172,7 +172,10 @@ class Weibo:
                 self.upload_result()
                 return
             self.current_size += 1
-            feed = item.find_element(By.XPATH, "div[@class='card-feed']/div[@class='content']")
+            try:
+                feed = item.find_element(By.XPATH, "div[@class='card-feed']/div[@class='content']")
+            except selenium.common.exceptions.NoSuchElementException:
+                continue
             self.user_names.append(feed.find_element(By.XPATH, "div[@class='info']/div[2]").text)
 
             if self.is_element_exist(feed, "p[@node-type='feed_list_content']/a[@action-type='fl_unfold']/i"):
@@ -183,20 +186,21 @@ class Weibo:
 
             acts = item.find_elements(By.XPATH, "div[@class='card-act']/ul/li")
 
-            if acts[1].text == "转发":
+            if acts[0].text == "转发":
                 self.forwards.append(0)
             else:
-                self.forwards.append(int(acts[1].text[3:]))
+                self.forwards.append(int(acts[0].text))
 
-            if acts[2].text == "评论":
+            if acts[1].text == "评论":
                 self.comments.append(0)
             else:
-                self.comments.append(int(acts[2].text[3:]))
+                self.comments.append(int(acts[1].text))
 
-            if acts[3].find_element(By.XPATH, "a/em").text == "":
+            if acts[2].find_element(By.XPATH, "a").text == "赞":
                 self.likes.append(0)
             else:
-                self.likes.append(int(acts[3].find_element(By.XPATH, "a/em").text))
+                self.likes.append(int(acts[2].text))
+                # self.likes.append(int(acts[3].find_element(By.XPATH, "a/em").text))
 
         self.upload_result()
 
@@ -218,10 +222,10 @@ def craw_weibo(job_id: str, search_param: str, search_size: int, cookie: str):
     :return: 无返回值
     """
     w = Weibo(job_id, search_param, search_size, cookie)
-    # w.get_cookie()
     w.work()
 
 
 if __name__ == '__main__':
-    cookie_str = "SUB=_2A25JVWp8DeRhGeBK71EV8C7Iwz2IHXVqI9y0rDV8PUNbmtAGLWv6kW9NR6sWy4Vyg5EHsbLAAKhN0WReT-iN_srr; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9WFU.HO6vhCZ5ZqSupQUQZul5JpX5KzhUgL.FoqXSheXeh5X1h22dJLoIp7LxKML1KBLBKnLxKqL1hnLBoMcShB0Sh57Shnp; ALF=1714572716; SSOLoginState=1683036716; _s_tentry=-; Apache=3001444062240.0127.1683037192464; SINAGLOBAL=3001444062240.0127.1683037192464; ULV=1683037192470:1:1:1:3001444062240.0127.1683037192464:; PC_TOKEN=62fabcb1ff; WBStorage=4d96c54e|undefined"
-    craw_weibo(0, "丫丫将回国", 30, cookie_str)
+    # cookie_str = "SUB=_2A25JVWp8DeRhGeBK71EV8C7Iwz2IHXVqI9y0rDV8PUNbmtAGLWv6kW9NR6sWy4Vyg5EHsbLAAKhN0WReT-iN_srr; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9WFU.HO6vhCZ5ZqSupQUQZul5JpX5KzhUgL.FoqXSheXeh5X1h22dJLoIp7LxKML1KBLBKnLxKqL1hnLBoMcShB0Sh57Shnp; ALF=1714572716; SSOLoginState=1683036716; _s_tentry=-; Apache=3001444062240.0127.1683037192464; SINAGLOBAL=3001444062240.0127.1683037192464; ULV=1683037192470:1:1:1:3001444062240.0127.1683037192464:; PC_TOKEN=62fabcb1ff; WBStorage=4d96c54e|undefined"
+    cookie_str = "SINAGLOBAL=5606751045806.462.1680597147466; UOR=,,login.sina.com.cn; SCF=AkqrWFJFuTNx0CZeqhNHPtPR9LZGBAOkhJRgm2OkwotCepTUYaZw7mGqvXhkYlKm9vttECPzWFcdy45RwNfH7PA.; SUB=_2A25JaZIIDeRhGeVN6VMY9ifPwziIHXVqHoTArDV8PUNbmtANLU3EkW9NTIIm_w2Xm3rGj_8ed0-KbQOtDpt-HC7s; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9WW17wUuBXeByG5rfMSff4u55JpX5KzhUgL.Foe0eo24So.01hB2dJLoI0YLxK-L1KeL1hnLxK-L1KeL1hnLxK-L1K-L122LxK-L1KeL1hnLxK-L1K-L122LxK-L1K-L122LxK-L1KeL1hnt; ALF=1716458968; SSOLoginState=1684922968; amp_6e403e=_txHIOe6zsGDrfyIJvxj_P...1h16jocke.1h16jockf.0.k.k; _s_tentry=weibo.com; Apache=18663174507.398407.1684923015943; ULV=1684923016020:9:6:1:18663174507.398407.1684923015943:1684374747295"
+    craw_weibo(0, "丫丫将回国", 300, cookie_str)
