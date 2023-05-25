@@ -3,10 +3,13 @@
 # @Author : 王思哲
 # @File : job.py
 # @Software: PyCharm
+from fastapi import HTTPException
 from typing import Dict
 from uuid import uuid4
 from fastapi import APIRouter, Body
 from pydantic import BaseModel
+from tortoise.exceptions import DoesNotExist
+
 from models.job import Job
 from utils.globalq import tasks_queue
 from utils.logger import debug
@@ -68,3 +71,13 @@ async def create_job(job_request: JobCreateRequest = Body(example={
 async def get_jobs():
     jobs = await Job.all()
     return [job.__dict__ for job in jobs]
+
+# 删除任务列表
+@router.delete("/{job_id}", description="删除爬虫任务")
+async def delete_job(job_id: str):
+    try:
+        job = await Job.get(job_id=job_id)
+        await job.delete()
+        return {"message": "Job deleted successfully."}
+    except DoesNotExist:
+        raise HTTPException(status_code=404, detail="Job not found")
