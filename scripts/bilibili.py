@@ -29,7 +29,7 @@ from logger import log, debug
 
 
 def write_error_log(message):
-    with open("video_errorlist.txt", "a") as file:
+    with open("./configs/video_errorlist.txt", "a") as file:
         file.write(message + "\n")
 
 
@@ -39,7 +39,7 @@ def save_progress(progress):
 
     while retries < max_retries:
         try:
-            with open("progress.txt", "w", encoding='utf-8') as f:
+            with open("./configs/progress.txt", "w", encoding='utf-8') as f:
                 json.dump(progress, f)
             break  # 如果成功保存，跳出循环
         except PermissionError as e:
@@ -422,7 +422,7 @@ def main(job_id, search_param, search_size, cookie):
     db_manager = DBManager(db=db)
 
     # 首次登录获取cookie文件
-    cookies_file = 'cookies.pkl'
+    cookies_file = './configs/cookies.pkl'
     set_cookie(cookie, cookies_file)
 
     print("测试cookies文件是否已获取。若无，请在弹出的窗口中登录b站账号，登录完成后，窗口将关闭；若有，窗口会立即关闭")
