@@ -177,7 +177,7 @@ def close_mini_player(driver):
 
 def restart_browser(driver):
     driver.quit()
-    shutil.rmtree(temp_dir)
+    # shutil.rmtree(temp_dir)
     main()
 
 
@@ -285,38 +285,38 @@ def write_to_datastore(job_id, video_titles, user_names, user_ids, comments, cre
     db_manager.insert(sql=sql, data_list=comments_list)
 
 
-def write_to_csv(video_id, index, level, parent_nickname, parent_user_id, nickname, user_id, content, time, likes,
+def save_results(video_id, index, level, parent_nickname, parent_user_id, nickname, user_id, content, time, likes,
                  user_names, user_ids, comments, create_times, like_counts):
-    file_exists = os.path.isfile(f'{video_id}.csv')
+    # file_exists = os.path.isfile(f'{video_id}.csv')
     max_retries = 50
     retries = 0
 
     while retries < max_retries:
         try:
-            with open(f'{video_id}.csv', mode='a', encoding='utf-8', newline='') as csvfile:
-                fieldnames = ['编号', '隶属关系', '被评论者昵称', '被评论者ID', '昵称', '用户ID', '评论内容', '发布时间',
-                              '点赞数']
-                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-
-                if not file_exists:
-                    writer.writeheader()
-
-                writer.writerow({
-                    '编号': index,
-                    '隶属关系': level,
-                    '被评论者昵称': parent_nickname,
-                    '被评论者ID': parent_user_id,
-                    '昵称': nickname,
-                    '用户ID': user_id,
-                    '评论内容': content,
-                    '发布时间': time,
-                    '点赞数': likes
-                })
-                user_names.append(nickname)
-                user_ids.append(user_id)
-                comments.append(content)
-                create_times.append(time)
-                like_counts.append(likes)
+            # with open(f'{video_id}.csv', mode='a', encoding='utf-8', newline='') as csvfile:
+            #     fieldnames = ['编号', '隶属关系', '被评论者昵称', '被评论者ID', '昵称', '用户ID', '评论内容', '发布时间',
+            #                   '点赞数']
+            #     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            #
+            #     if not file_exists:
+            #         writer.writeheader()
+            #
+            #     writer.writerow({
+            #         '编号': index,
+            #         '隶属关系': level,
+            #         '被评论者昵称': parent_nickname,
+            #         '被评论者ID': parent_user_id,
+            #         '昵称': nickname,
+            #         '用户ID': user_id,
+            #         '评论内容': content,
+            #         '发布时间': time,
+            #         '点赞数': likes
+            #     })
+            user_names.append(nickname)
+            user_ids.append(user_id)
+            comments.append(content)
+            create_times.append(time)
+            like_counts.append(likes)
 
             break  # 如果成功写入，跳出循环
         except PermissionError as e:
@@ -354,7 +354,7 @@ def extract_sub_reply(video_id, progress, first_level_nickname, first_level_user
                 except AttributeError:
                     sub_reply_likes = 0
 
-                write_to_csv(video_id, index=i, level='二级评论', parent_nickname=first_level_nickname,
+                save_results(video_id, index=i, level='二级评论', parent_nickname=first_level_nickname,
                              parent_user_id=first_level_user_id,
                              nickname=sub_reply_nickname, user_id=sub_reply_user_id, content=sub_reply_text,
                              time=sub_reply_time,
@@ -412,10 +412,10 @@ def get_url(driver, search_size):
 
 def main(job_id, search_param, search_size, cookie):
     log(f"开始爬取b站   job_id: {job_id}    search_param: {search_param}    search_size: {search_size}")
-    global temp_dir
-    # 代码文件所在的文件夹内创建一个新的文件夹，作为缓存目录。如果想自行设定目录，请修改下面代码
-    current_folder = os.path.dirname(os.path.abspath(__file__))
-    temp_dir = tempfile.mkdtemp(dir=current_folder)
+    # global temp_dir
+    # # 代码文件所在的文件夹内创建一个新的文件夹，作为缓存目录。如果想自行设定目录，请修改下面代码
+    # current_folder = os.path.dirname(os.path.abspath(__file__))
+    # temp_dir = tempfile.mkdtemp(dir=current_folder)
 
     with open("./configs/db_manager_config.txt", "r") as f:
         db = json.loads(f.read())
@@ -426,7 +426,10 @@ def main(job_id, search_param, search_size, cookie):
     set_cookie(cookie, cookies_file)
 
     print("测试cookies文件是否已获取。若无，请在弹出的窗口中登录b站账号，登录完成后，窗口将关闭；若有，窗口会立即关闭")
-    driver = webdriver.Chrome(service=Service(executable_path=ChromeDriverManager().install()))
+    # 创建 ChromeOptions 对象，设置 headless 模式
+    options = webdriver.ChromeOptions()
+    options.add_argument('--headless')
+    driver = webdriver.Chrome(service=Service(executable_path=ChromeDriverManager().install()), options=options)
     driver.get('https://space.bilibili.com/')
     if not load_cookies(driver, cookies_file):
         manual_login(driver, cookies_file)
@@ -436,7 +439,7 @@ def main(job_id, search_param, search_size, cookie):
     # 设置Chrome浏览器参数
     chrome_options = Options()
     # 将Chrome的缓存目录设置为刚刚创建的临时目录
-    chrome_options.add_argument(f'--user-data-dir={temp_dir}')
+    # chrome_options.add_argument(f'--user-data-dir={temp_dir}')
     chrome_options.add_argument('--disable-plugins-discovery')
     chrome_options.add_argument('--mute-audio')
     # 开启无头模式，禁用视频、音频、图片加载，开启无痕模式，减少内存占用
@@ -541,7 +544,7 @@ def main(job_id, search_param, search_size, cookie):
                     first_level_likes = 0
 
                 if (progress["write_parent"] == 0):
-                    write_to_csv(video_id, index=i, level='一级评论', parent_nickname='up主', parent_user_id='up主',
+                    save_results(video_id, index=i, level='一级评论', parent_nickname='up主', parent_user_id='up主',
                                  nickname=first_level_nickname, user_id=first_level_user_id,
                                  content=first_level_content,
                                  time=first_level_time, likes=first_level_likes, user_names=user_names,
@@ -574,7 +577,7 @@ def main(job_id, search_param, search_size, cookie):
                     # 可以把max_sub_pages更改为您希望设置的最大二级评论页码数。
                     # 如果想无限制，请设为max_sub_pages = None。
                     # 设定一个上限有利于减少内存占用，避免页面崩溃。建议设为150。
-                    max_sub_pages = 150
+                    max_sub_pages = 20
                     current_sub_page = progress["sub_page"]
 
                     while max_sub_pages is None or current_sub_page < max_sub_pages:
@@ -634,6 +637,6 @@ if __name__ == "__main__":
     # job_id = 'd33624eb-d987-40ac-b1e3-c76sh97f04ec'
     # search_size = 2
     # cookie = "：buvid3=3D374CCA-9B28-D2DA-BA7F-6C8C17522CA902596infoc; b_nut=1664276402; _uuid=47FDAB410-76FE-2B5B-BA92-9179814895E401819infoc; buvid4=81E0022D-7394-63F4-A151-124C9C32941805331-022092719-fBZBRUhBzPLRPrx5uPH7aA%3D%3D; buvid_fp_plain=undefined; DedeUserID=10703502; DedeUserID__ckMd5=25676d39d4ea99b8; b_ut=5; nostalgia_conf=-1; CURRENT_BLACKGAP=0; CURRENT_FNVAL=4048; rpdid=|(YuuJYl)k)0J'uYY)YY~JRR; hit-new-style-dyn=0; hit-dyn-v2=1; blackside_state=1; i-wanna-go-back=-1; header_theme_version=CLOSE; CURRENT_PID=5b3a77a0-d9c0-11ed-9451-2f1cb2eaf612; FEED_LIVE_VERSION=V8; CURRENT_QUALITY=80; bsource=search_google; bp_video_offset_10703502=798530868368900100; fingerprint=22bc997de594bad62cad801797ca2443; home_feed_column=4; browser_resolution=732-783; innersign=1; buvid_fp=d1427e83789114db7d61245c656c93d1; SESSDATA=d30c183e%2C1700465473%2C65fff%2A51; bili_jct=a20671b319fcb6f27615f92af332bc67; sid=6xxu88p9; PVID=2; b_lsid=FEACDB46_1884D9CFB0C"
-    # search_param = '测试'
+    # search_param = '丫丫回国啦'
 
     main(job_id, search_param, search_size, cookie)
