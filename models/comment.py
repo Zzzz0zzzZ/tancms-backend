@@ -18,6 +18,7 @@ class Comment(Model):
     create_time = fields.CharField(max_length=255, null=True)
     like_count = fields.IntField(null=True)
     retransmission_count = fields.IntField(null=True)
+    sentiment = fields.CharField(max_length=255, null=True)
 
     class Meta:
         table = "comments"
