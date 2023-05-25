@@ -59,10 +59,11 @@ async def export_comments(job_id: str, response: Response):
         }
             for c in comments
     ]
-    filename = f"./export/job_{job_id}_data.xlsx"
+    filename = f"job_{job_id}_data.xlsx"
+    filepath = "./export/" + filename
     df = pd.DataFrame(comments)
-    df.to_excel(filename, index=False)
-    return FileResponse(filename, filename=f"{filename}")
+    df.to_excel(filepath, index=False)
+    return FileResponse(filepath, filename=f"{filename}")
 
 
 
