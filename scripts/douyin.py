@@ -1,6 +1,7 @@
 import sys
+import time
 from datetime import datetime
-
+from senti_judge import jieba4null, polar_classifier
 import pandas as pd
 import urllib.parse
 import json
@@ -123,14 +124,21 @@ class DouYin:
         """
         sql = '''
                         INSERT INTO comments(
-                            job_id, platform, user_name, comment, like_count
+                            job_id, platform, user_name, comment, like_count, sentiment
                         )
-                        VALUES (%s, %s, %s, %s, %s)
+                        VALUES (%s, %s, %s, %s, %s, %s)
                     '''
+
+        j = jieba4null()
+        sentiments = j.cut_sentence(self.contents)
+        pc = polar_classifier()
+        sentiments = pc.multi_list_classify(sentiments)
+
         comments_list = []
         for i in range(self.upload_size, len(self.user_names)):
             comments_list.append(
-                [self.job_id, 'douyin', self.user_names[i], self.contents[i], str(self.likes[i])])
+                [self.job_id, 'douyin', self.user_names[i], self.contents[i], str(self.likes[i]), sentiments[i]])
+
         self.db_manager.insert(sql=sql, data_list=comments_list)
         self.upload_size += len(comments_list)
 
@@ -175,6 +183,9 @@ class DouYin:
         for video in videos:
             comments_btn = video.find_element(By.XPATH, "div[2]")
             comments_btn.click()
+
+            time.sleep(10)
+
             WebDriverWait(self.browser, 10, 0.5).until(
                 EC.presence_of_element_located((By.XPATH, "//*[@data-e2e='comment-list']")))
             comments = self.browser.find_element(By.XPATH, "//*[@data-e2e='comment-list']")
