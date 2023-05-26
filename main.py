@@ -8,6 +8,7 @@ from starlette.middleware.cors import CORSMiddleware
 from tortoise.contrib.fastapi import register_tortoise
 from routers.comment import router as comment_router
 from routers.job import router as job_router
+from routers.analyze import router as analyze_router
 from utils.globalq import tasks_queue
 from utils.logger import log
 
@@ -39,6 +40,7 @@ app.add_middleware(
 
 app.include_router(job_router, prefix="/jobs")
 app.include_router(comment_router, prefix="/comments")
+app.include_router(analyze_router, prefix="/analyze")
 
 # 注册数据库连接
 register_tortoise(
