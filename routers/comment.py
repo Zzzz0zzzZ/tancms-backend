@@ -21,6 +21,14 @@ async def get_job_comments_group_by_platform(job_id: str):
     comments = await Comment.filter(job_id=job_id)
     jobs = await Job.filter(job_id=job_id)
 
+    def get_senti_text(t):
+        if t > 0:
+            return "积极"
+        elif t == 0:
+            return "中性"
+        else:
+            return "消极"
+
     if comments is None:
         return {"error": "Job not found"}
 
@@ -35,7 +43,10 @@ async def get_job_comments_group_by_platform(job_id: str):
         if comment.platform not in platform_comments_map["job_detail"]["comments"]:
             platform_comments_map["job_detail"]["comments"][comment.platform] = []
 
-        platform_comments_map["job_detail"]["comments"][comment.platform].append(comment.__dict__)
+        t_comment = comment.__dict__
+        t_comment["sentiment_level"] = get_senti_text(float(t_comment["sentiment"]))
+
+        platform_comments_map["job_detail"]["comments"][comment.platform].append(t_comment)
 
     return platform_comments_map
 
@@ -43,6 +54,15 @@ async def get_job_comments_group_by_platform(job_id: str):
 @router.get("/export/{job_id}", description="根据job_id查询评论并导出excel文件")
 async def export_comments(job_id: str, response: Response):
     comments = await Comment.filter(job_id=job_id).all()
+
+    def get_senti_text(t):
+        if t > 0:
+            return "积极"
+        elif t == 0:
+            return "中性"
+        else:
+            return "消极"
+
     comments = [
         {
             "id": c.id,
@@ -55,7 +75,8 @@ async def export_comments(job_id: str, response: Response):
             "create_time": c.create_time,
             "like_count": c.like_count,
             "retransmission_count": c.retransmission_count,
-            "sentiment": c.sentiment
+            "sentiment_point": c.sentiment,
+            "sentiment_level": get_senti_text(float(c.sentiment))
         }
             for c in comments
     ]
