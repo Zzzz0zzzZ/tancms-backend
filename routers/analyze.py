@@ -20,7 +20,12 @@ router = APIRouter()
 
 
 # 获取分析图片
-@router.get("/pic")
+@router.get("/pic", description="获取分析后的图片  三个入参: "
+                                "type为sentiment或statistic  获取哪种分析的图片   "
+                                "job_id为任务id  "
+                                "platform为'douyin'、'xhs'、'bilibili'、'weibo'、'all' all代表所有平台  "
+                                "请求格式注意：/analyze/pic?type=xxx&job_id=xxx&platform=xxx  "
+                                "【需要与爬取的平台对应，否则图不正确】")
 async def get_pics(type: str = Query(...), job_id: str = Query(...), platform: str = Query(...)):
 
     if platform not in ["xhs", "bilibili", "weibo", "douyin", "all"]:
