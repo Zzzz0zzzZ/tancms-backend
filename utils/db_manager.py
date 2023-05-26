@@ -60,6 +60,37 @@ class DBManager(object):
         self.cur.close()
         self.conn.close()
 
+    def getdata(self, job_id: str, platform: str):
+
+        if platform == "all":
+            sql = 'SELECT * FROM comments WHERE job_id = %s'
+            self.cur.execute(sql, job_id)
+        else:
+            sql = 'SELECT * FROM comments WHERE job_id = %s and platform = %s'
+            self.cur.execute(sql, (job_id, platform))
+
+        # 获取查询结果并存储在Python二维list中
+        result_list = []
+        for row in self.cur.fetchall():
+            result_list.append(row)
+        return result_list
+
+    def get_senti_score(self, job_id: str, platform: str):
+
+        if platform == "all":
+            sql = 'SELECT sentiment FROM comments WHERE job_id = %s'
+            self.cur.execute(sql, job_id)
+        else:
+            sql = 'SELECT sentiment FROM comments WHERE job_id = %s and platform = %s'
+            self.cur.execute(sql, (job_id, platform))
+
+        # 获取查询结果并存储在Python二维list中
+        result_list = []
+        for row in self.cur.fetchall():
+            result_list.append(float(row['sentiment']))
+
+        return result_list
+
     # 不用改
     def list_of_groups(self):
         list_of_groups = zip(*(iter(self.data_list),) * self.sp_num)
