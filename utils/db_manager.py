@@ -87,7 +87,7 @@ class DBManager(object):
         # 获取查询结果并存储在Python二维list中
         result_list = []
         for row in self.cur.fetchall():
-            result_list.append(float(row['sentiment']))
+            result_list.append(float(row['sentiment'] if row['sentiment'] is not None else -100))
 
         return result_list
 
