@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-
+from senti_judge import jieba4null, polar_classifier
 from selenium import webdriver
 from selenium.common import exceptions
 from webdriver_manager.chrome import ChromeDriverManager
@@ -265,10 +265,17 @@ def scroll_to_bottom(driver):
 def write_to_datastore(job_id, video_titles, user_names, user_ids, comments, create_times, likes, db_manager):
     sql = '''
                     INSERT INTO comments(
-                        job_id, platform, topic, user_name, comment, create_time, like_count
+                        job_id, platform, topic, user_name, comment, create_time, like_count, sentiment
                     )
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         '''
+
+    j = jieba4null()
+    t_comments = j.cut_sentence(comments)
+    pc = polar_classifier()
+    sentiments = pc.multi_list_classify(t_comments)
+
+
     comments_list = []
     print(len(user_names))
     print('video_title:' + str(len(video_titles)))
@@ -279,9 +286,9 @@ def write_to_datastore(job_id, video_titles, user_names, user_ids, comments, cre
 
     for i in range(len(user_names)):
         comments_list.append(
-            [job_id, 'bilibili', video_titles[0], user_names[i], comments[i], create_times[i], likes[i]]
+            [job_id, 'bilibili', video_titles[0], user_names[i], comments[i], create_times[i], likes[i], sentiments[i]]
         )
-        print(comments_list[i])
+        # print(comments_list[i])
     db_manager.insert(sql=sql, data_list=comments_list)
 
 
