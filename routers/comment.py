@@ -26,6 +26,8 @@ async def get_job_comments_group_by_platform(job_id: str):
             return "积极"
         elif t == 0:
             return "中性"
+        elif t == -100:
+            return "空数据"
         else:
             return "消极"
 
@@ -44,7 +46,7 @@ async def get_job_comments_group_by_platform(job_id: str):
             platform_comments_map["job_detail"]["comments"][comment.platform] = []
 
         t_comment = comment.__dict__
-        t_comment["sentiment_level"] = get_senti_text(float(t_comment["sentiment"]))
+        t_comment["sentiment_level"] = get_senti_text(float(t_comment["sentiment"] if t_comment["sentiment"] is not None else -100))
 
         platform_comments_map["job_detail"]["comments"][comment.platform].append(t_comment)
 
@@ -60,6 +62,8 @@ async def export_comments(job_id: str, response: Response):
             return "积极"
         elif t == 0:
             return "中性"
+        elif t == -100:
+            return "空数据"
         else:
             return "消极"
 
@@ -76,7 +80,7 @@ async def export_comments(job_id: str, response: Response):
             "like_count": c.like_count,
             "retransmission_count": c.retransmission_count,
             "sentiment_point": c.sentiment,
-            "sentiment_level": get_senti_text(float(c.sentiment))
+            "sentiment_level": get_senti_text(float(c.sentiment if c.sentiment is not None else -100))
         }
             for c in comments
     ]
