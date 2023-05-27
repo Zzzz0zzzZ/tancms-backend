@@ -5,6 +5,7 @@ import queue
 import uvicorn
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
+from starlette.responses import RedirectResponse
 from tortoise.contrib.fastapi import register_tortoise
 from routers.comment import router as comment_router
 from routers.job import router as job_router
@@ -80,6 +81,11 @@ async def startup_event():
     # 开启多个爬虫协程
     for i in range(NUM_WORKERS):
         asyncio.create_task(spider_task(), name=f"spider_task_{i}")
+
+# 重定向到接口文档页面
+@app.get("/")
+async def main_to_docs():
+    return RedirectResponse(url="/docs")
 
 
 if __name__ == "__main__":
