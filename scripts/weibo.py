@@ -3,6 +3,7 @@ import sys
 from time import sleep
 import urllib.parse
 
+import selenium
 from selenium import webdriver
 from selenium.common import exceptions
 from selenium.webdriver.common.by import By
@@ -11,6 +12,7 @@ from selenium.webdriver.support import expected_conditions as EC
 import pandas as pd
 from db_manager import DBManager
 from logger import log, debug
+from senti_judge import jieba4null, polar_classifier
 
 wb_cookies_list = [{'domain': 's.weibo.com', 'httpOnly': False, 'name': 'WBStorage', 'path': '/', 'sameSite': 'Lax', 'secure': False, 'value': '4d96c54e|undefined'}, {'domain': '.weibo.com', 'httpOnly': False, 'name': 'PC_TOKEN', 'path': '/', 'sameSite': 'Lax', 'secure': True, 'value': 'a3bc12a556'}, {'domain': '.weibo.com', 'httpOnly': False, 'name': 'ALF', 'path': '/', 'sameSite': 'Lax', 'secure': True, 'value': '1714571952'}, {'domain': '.weibo.com', 'httpOnly': False, 'name': 'SSOLoginState', 'path': '/', 'sameSite': 'Lax', 'secure': True, 'value': '1683035953'}, {'domain': '.weibo.com', 'httpOnly': False, 'name': 'Apache', 'path': '/', 'sameSite': 'Lax', 'secure': False, 'value': '9782061202148.695.1683035940951'}, {'domain': '.weibo.com', 'httpOnly': True, 'name': 'SUB', 'path': '/', 'sameSite': 'Lax', 'secure': True, 'value': '_2A25JVWdgDeRhGeVN6VMY9ifPwziIHXVqI9-orDV8PUNbmtANLRP8kW9NTIIm_yLrt55EUYJbP8bSl20l52lEDfK4'}, {'domain': '.weibo.com', 'httpOnly': False, 'name': 'SUBP', 'path': '/', 'sameSite': 'Lax', 'secure': True, 'value': '0033WrSXqPxfM725Ws9jqgMF55529P9D9WW17wUuBXeByG5rfMSff4u55JpX5KzhUgL.Foe0eo24So.01hB2dJLoI0YLxK-L1KeL1hnLxK-L1KeL1hnLxK-L1K-L122LxK-L1KeL1hnLxK-L1K-L122LxK-L1K-L122LxK-L1KeL1hnt'}, {'domain': '.weibo.com', 'httpOnly': False, 'name': 'ULV', 'path': '/', 'sameSite': 'Lax', 'secure': False, 'value': '1683035941071:1:1:1:9782061202148.695.1683035940951:'}, {'domain': '.weibo.com', 'httpOnly': False, 'name': 'SINAGLOBAL', 'path': '/', 'sameSite': 'Lax', 'secure': False, 'value': '9782061202148.695.1683035940951'}, {'domain': '.weibo.com', 'httpOnly': False, 'name': '_s_tentry', 'path': '/', 'sameSite': 'Lax', 'secure': False, 'value': 'passport.weibo.com'}]
 
@@ -125,14 +127,18 @@ class Weibo:
 
         sql = '''
                 INSERT INTO comments(
-                    job_id, platform, user_name, comment, like_count, retransmission_count
+                    job_id, platform, user_name, comment, like_count, retransmission_count, sentiment
                 )
-                VALUES (%s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
             '''
+        j = jieba4null()
+        t_contents = j.cut_sentence(self.contents)
+        pc = polar_classifier()
+        sentiments = pc.multi_list_classify(t_contents)
         comments_list = []
         for i in range(self.upload_size, len(self.user_names)):
             comments_list.append(
-                [self.job_id, 'weibo', self.user_names[i], self.contents[i], self.likes[i], self.forwards[i]])
+                [self.job_id, 'weibo', self.user_names[i], self.contents[i], self.likes[i], self.forwards[i], sentiments[i]])
         self.db_manager.insert(sql=sql, data_list=comments_list)
         self.upload_size += len(comments_list)
 
@@ -175,7 +181,10 @@ class Weibo:
                 self.upload_result()
                 return
             self.current_size += 1
-            feed = item.find_element(By.XPATH, "div[@class='card-feed']/div[@class='content']")
+            try:
+                feed = item.find_element(By.XPATH, "div[@class='card-feed']/div[@class='content']")
+            except selenium.common.exceptions.NoSuchElementException:
+                continue
             self.user_names.append(feed.find_element(By.XPATH, "div[@class='info']/div[2]").text)
 
             if self.is_element_exist(feed, "p[@node-type='feed_list_content']/a[@action-type='fl_unfold']/i"):
@@ -186,20 +195,22 @@ class Weibo:
 
             acts = item.find_elements(By.XPATH, "div[@class='card-act']/ul/li")
 
-            if acts[1].text == "转发":
+            if acts[0].text == "转发":
                 self.forwards.append(0)
             else:
-                self.forwards.append(int(acts[1].text[3:]))
+                self.forwards.append(int(acts[0].text))
 
-            if acts[2].text == "评论":
+            if acts[1].text == "评论":
                 self.comments.append(0)
             else:
-                self.comments.append(int(acts[2].text[3:]))
+                self.comments.append(int(acts[1].text))
 
-            if acts[3].find_element(By.XPATH, "a/em").text == "":
+            if acts[2].find_element(By.XPATH, "a").text == "赞":
                 self.likes.append(0)
             else:
-                self.likes.append(int(acts[3].find_element(By.XPATH, "a/em").text))
+                self.likes.append(int(acts[2].text))
+                # self.likes.append(int(acts[3].find_element(By.XPATH, "a/em").text))
+
 
         self.upload_result()
 
