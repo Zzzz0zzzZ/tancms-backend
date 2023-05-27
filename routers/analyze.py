@@ -27,7 +27,6 @@ router = APIRouter()
                                 "请求格式注意：/analyze/pic?type=xxx&job_id=xxx&platform=xxx  "
                                 "【需要与爬取的平台对应，否则图不正确】")
 async def get_pics(type: str = Query(...), job_id: str = Query(...), platform: str = Query(...)):
-
     if platform not in ["xhs", "bilibili", "weibo", "douyin", "all"]:
         return "platform_error"
 
@@ -43,12 +42,16 @@ async def get_pics(type: str = Query(...), job_id: str = Query(...), platform: s
             media_type="image/png"
         )
 
-
     elif type == "statistic":
-        # stat_filename = getpic_stat()
 
-        return "功能完善中"
+        # stat_filename = getpic_stat()
+        stat_filename = "./export/pics/test.png"
+
+        photo = open(stat_filename, mode="rb")
+
+        return StreamingResponse(
+            photo,
+            media_type="image/png"
+        )
 
     return "type_error"
-
-
